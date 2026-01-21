@@ -1,0 +1,91 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            Int         @id @default(autoincrement())
+  username      String      @unique
+  full_name     String
+  email         String      @unique
+  password      String
+  photo_profile String?
+  bio           String?
+  created_at    DateTime    @default(now())
+  updated_at    DateTime    @updatedAt
+
+  // Relations
+  threads       Thread[]
+  replies       Reply[]
+  likes         Like[]
+  
+  // Self-relation for Following system
+  followers     Following[] @relation("following")
+  following     Following[] @relation("follower")
+}
+
+model Thread {
+  id               Int      @id @default(autoincrement())
+  content          String
+  image            String?
+  number_of_replies Int     @default(0)
+  created_at       DateTime @default(now())
+  updated_at       DateTime @updatedAt
+
+  // Relations
+  author           User     @relation(fields: [created_by], references: [id])
+  created_by       Int
+  replies          Reply[]
+  likes            Like[]
+}
+
+model Reply {
+  id         Int      @id @default(autoincrement())
+  content    String
+  image      String?
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  // Relations
+  author     User     @relation(fields: [user_id], references: [id])
+  user_id    Int
+  thread     Thread   @relation(fields: [thread_id], references: [id])
+  thread_id  Int
+}
+
+model Like {
+  id         Int      @id @default(autoincrement())
+  created_at DateTime @default(now())
+
+  // Relations
+  user       User     @relation(fields: [user_id], references: [id])
+  user_id    Int
+  thread     Thread   @relation(fields: [thread_id], references: [id])
+  thread_id  Int
+
+  @@unique([user_id, thread_id]) // Prevents a user from liking the same thread twice
+}
+
+model Following {
+  id           Int      @id @default(autoincrement())
+  created_at   DateTime @default(now())
+
+  // Relations
+  follower     User     @relation("follower", fields: [follower_id], references: [id])
+  follower_id  Int
+  following    User     @relation("following", fields: [following_id], references: [id])
+  following_id Int
+
+  @@unique([follower_id, following_id]) // Prevents duplicate follows
+}
