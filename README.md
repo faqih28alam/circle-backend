@@ -43,7 +43,6 @@ The database architecture follows a relational model designed for social graph s
 - edit prisma/schema.prisma (Ensure URL is inside the datasource block):
     generator client {
     provider = "prisma-client-js"
-    output   = "../src/generated/prisma"
     }
 
     datasource db {
@@ -75,6 +74,7 @@ model User {
 - npx prisma generate                                       # generate the client code
 - npx prisma migrate dev --name init                        # push schema to PostgreSQL
 - npx prisma studio                                         # to see Data in localhost:555, execute at other bash
+- edit src/connection/client.ts
 ```
 
 ## 🛠️ How to do Seeding
@@ -120,10 +120,25 @@ model User {
 - npm install -D @types/bcrypt @types/joi @types/jsonwebtoken
 - add src/utils/jwt.ts for signature token and verification token 
 - add jwt secret key in .env
+JWT_SECRET=your-super-secret-key
 - continue project to controllers / middlewares
 ```
 
-## 🛠️ Step to setup Day 5 project
+## 🛠️ How to Setup Multer
+```text
+- npm install multer
+- npm install -D @types/multer
+- add src/utils/multer.ts
+```
+
+## 🛠️ How to Setup CORS
+```text
+- npm install cors
+- npm install -D @types/cors
+- add src/middlewares/cors.ts
+```
+
+## 🛠️ Step to setup project
 ```text
 - Edit schema.prisma (Add your new model/fields).
 - Edit seed.ts (Update your dummy data).
