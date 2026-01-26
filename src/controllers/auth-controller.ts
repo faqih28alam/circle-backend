@@ -46,3 +46,14 @@ export async function handleLogin(req: Request, res: Response) {
     res.status(401).json({ message: err.message });
   }
 }
+
+// controller to check auth
+export const checkAuth = async (req: Request, res: Response) => {
+  try {
+    // Your middleware should have already put the user in req.user
+    // We send this back to the frontend to populate the RightBar
+    res.json((req as any).user); 
+  } catch (error) {
+    res.status(500).json({ message: "Server error" });
+  }
+};

@@ -2,12 +2,11 @@
 
 // IMPORT EXPRESS
 import express, { Request, Response } from 'express';
-// import productRoutes from './routes/product-route'; //import product routes
-// import orderRoutes from './routes/order-route';     //import order routes
-// import transferPointsRoutes from './routes/transferPoints-route'; //import transfer points routes
-// import supplierRoutes from './routes/supplier-route'; //import supplier routes
 import authRoutes from './routes/auth-route'; //import auth routes
+import appRoutes from './routes/app-route';
 import corsMiddleware from './middlewares/cors';
+import path from 'path';
+
 
 const app = express();
 
@@ -17,11 +16,9 @@ app.use(express.json());
 app.use(corsMiddleware);
 
 // Routes
-// app.use('/api/v1', productRoutes);
-// app.use('/api/v1', orderRoutes);
-// app.use('/api/v1', transferPointsRoutes);
-// app.use('/api/v1', supplierRoutes);
 app.use('/auth', authRoutes);
+app.use('/api', appRoutes);
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // global error handler: middleware for any unexpected errors 
 app.use((err: any, req: any, res: any, next: any) => {
@@ -38,5 +35,5 @@ app.get('/', (req: Request, res: Response) => {
 });
 
 app.listen(process.env.PORT || 3000, () => {    // Start server and listen on specified port
-  console.log(`Server is running on http://localhost:${process.env.PORT || 3000}`); // Log message when server starts
+  console.log(`Backend server is running on http://localhost:${process.env.PORT || 3000}`); // Log message when server starts
 });
