@@ -21,22 +21,76 @@ export async function getThreads(req: Request, res: Response) {
     }
 }
 
-// controller for getting a thread by id
+// controller for getting a thread by id (Detail) -> GET /api/v1/thread/:id
 export async function getThreadById(req: Request, res: Response) {
     try {
         const { id } = req.params;
+        const userId = (req as any).user.id;
+        // Use the ID from the authMiddleware
         const thread = await prisma.thread.findUnique({
             where: { id: Number(id) },
             include: {
-                author: true,
-                replies: true,
+                author: {
+                    select: { id: true, username: true, full_name: true, photo_profile: true }
+                },
+                likes: {
+                    where: { user_id: userId } // Check if the CURRENT user liked it
+                },
+                _count: {
+                    select: { likes: true, replies: true }
+                },
             },
         });
-        if (!thread) {
-            res.status(404).json({ message: "Thread not found" });
-            return;
-        }
-        res.json(thread);
+        // Check if thread exists
+        if (!thread) return res.status(404).json({ message: "Thread not found" });
+        // Send back the thread
+        return res.status(200).json({
+            code: 200,
+            status: "success",
+            message: "Get Data Thread Successfully",
+            data: {
+                id: thread.id,
+                content: thread.content,
+                image: thread.image,
+                created_at: thread.created_at,
+                author: thread.author,
+                likes_count: thread._count.likes,
+                replies_count: thread._count.replies,
+                isLiked: thread.likes.length > 0 
+            }
+        });
+
+    } catch (err: any) {
+        res.status(500).json({ message: err.message });
+    }
+}
+
+// Controller for getting replies of a thread GET /api/v1/thread/:id/replies
+export async function getThreadReplies(req: Request, res: Response) {
+
+    try {
+        const { id } = req.params;
+        const limit = Number(req.query.limit) || 25;
+
+        // query for getting replies
+        const replies = await prisma.reply.findMany({
+            where: { thread_id: Number(id) },
+            take: limit,
+            include: {
+                author: {
+                    select: { id: true, username: true, full_name: true, photo_profile: true }
+                }
+            },
+            orderBy: { created_at: 'desc' }
+        });
+
+        return res.status(200).json({
+            code: 200,
+            status: "success",
+            message: "Get Replies Successfully",
+            data: { replies }
+        });
+
     } catch (err: any) {
         res.status(500).json({ message: err.message });
     }
@@ -104,6 +158,54 @@ export async function deleteThread(req: Request, res: Response) {
             where: { id: Number(id) },
         });
         res.json(thread);
+    } catch (err: any) {
+        res.status(500).json({ message: err.message });
+    }
+}
+
+// controller for add Replies
+export async function createReply(req: Request, res: Response) {
+    try {
+        const { content, thread_id } = req.body;
+        const userId = (req as any).user.id;
+
+        if (!content || !content.trim()) {
+            return res.status(400).json({ message: "Reply content is required" });
+        }
+
+        // We use a transaction to ensure both operations succeed or fail together
+        const result = await prisma.$transaction(async (tx) => {
+            //  Create the reply
+            const newReply = await tx.reply.create({
+                data: {
+                    content: content.trim(),
+                    image: req.file ? req.file.filename : null,
+                    thread: { connect: { id: Number(thread_id) } },
+                    author: { connect: { id: userId } }
+                },
+                include: {
+                    author: {
+                        select: { id: true, username: true, full_name: true, photo_profile: true }
+                    }
+                }
+            });
+
+            // Increment the reply counter on the main thread
+            await tx.thread.update({
+                where: { id: Number(thread_id) },
+                data: {
+                    number_of_replies: { increment: 1 }
+                }
+            });
+
+            return newReply;
+        });
+
+        return res.status(201).json({
+            status: "success",
+            message: "Reply created successfully",
+            data: result
+        });
     } catch (err: any) {
         res.status(500).json({ message: err.message });
     }
