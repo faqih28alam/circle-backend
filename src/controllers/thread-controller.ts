@@ -49,10 +49,10 @@ export async function createThread(req: Request, res: Response, next: NextFuncti
         
         // Check if content is valid
         if (!content || !content.trim() || content.length > 500) {
-        return res.status(400).json({
-            status: "error",
-            message: "Invalid thread content",
-        });
+            return res.status(400).json({
+                status: "error",
+                message: "Invalid thread content",
+            });
         }        
 
         const image = req.file ? req.file.filename : null;
@@ -60,11 +60,16 @@ export async function createThread(req: Request, res: Response, next: NextFuncti
         const thread = await prisma.thread.create({
             data: { 
                 content: content.trim(), 
-                image, 
+                image: req.file ? req.file.filename : null, 
                 // Use the ID from your authenticated request
                 author: { connect: { id: (req as any).user.id } }, 
             },
+            include: { author: true }, // IMPORTANT: Include author for the WebSocket
         });
+
+        const io = req.app.get("io");
+        // Notify all clients that a new thread was created
+        io.emit("newThread", thread);        
         
         return res.status(201).json({
             status: "success", 
