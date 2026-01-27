@@ -168,14 +168,19 @@ export async function createReply(req: Request, res: Response) {
     try {
         const { content, thread_id } = req.body;
         const userId = (req as any).user.id;
-
-        if (!content || !content.trim()) {
-            return res.status(400).json({ message: "Reply content is required" });
+        
+        // Validation Reply Content
+        if (!content || content.trim().length === 0 || content.length > 500) {
+            return res.status(400).json({
+                code: 400,
+                status: "error", 
+                message: "Invalid thread content" 
+            });
         }
 
         // We use a transaction to ensure both operations succeed or fail together
         const result = await prisma.$transaction(async (tx) => {
-            //  Create the reply
+            //  Save the reply to the database
             const newReply = await tx.reply.create({
                 data: {
                     content: content.trim(),
@@ -190,16 +195,21 @@ export async function createReply(req: Request, res: Response) {
                 }
             });
 
-            // Increment the reply counter on the main thread
+            // Update/increment the reply counter on the main thread
             await tx.thread.update({
                 where: { id: Number(thread_id) },
-                data: {
-                    number_of_replies: { increment: 1 }
-                }
+                data: { number_of_replies: { increment: 1 }}
             });
 
             return newReply;
         });
+
+        // WebSocket Notification
+        const io = req.app.get("io");
+        if (!io) {
+            io.emit(`newReply:${thread_id}`, result);
+        }
+        
 
         return res.status(201).json({
             status: "success",
@@ -207,7 +217,7 @@ export async function createReply(req: Request, res: Response) {
             data: result
         });
     } catch (err: any) {
-        res.status(500).json({ message: err.message });
+        res.status(500).json({ code: 500, status: "error", message: err.message });
     }
 }
 
