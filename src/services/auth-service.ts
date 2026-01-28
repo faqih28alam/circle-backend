@@ -29,7 +29,7 @@ export async function registerUser(
       username: user.username, 
       full_name: user.full_name, 
       email: user.email, 
-      profile: user.photo_profile,
+      photo_profile: user.photo_profile,
       bio: user.bio,
     },
     token: token
@@ -44,5 +44,15 @@ export async function loginUser(email: string, password: string) {
   if (!isMatch) throw new Error("Wrong password");
 
   const token = generateToken({ id: user.id, username: user.username });
-  return { token };
+  return { 
+    token,
+    user: {
+      id: user.id, 
+      username: user.username, 
+      full_name: user.full_name, 
+      email: user.email, 
+      photo_profile: user.photo_profile,
+      bio: user.bio,
+    }
+  };
 }
