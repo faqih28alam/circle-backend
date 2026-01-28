@@ -8,11 +8,22 @@ export async function registerUser(
   full_name: string,
   email: string, 
   password: string, 
-  photo_profile: string,
-  bio: string
+  photo_profile?: string,
+  bio?: string
 ) {
+  // Validate email and password
   if (!email.match(/@/) || password.length < 6) {
     throw new Error("Invalid email or password");
+  }
+  // Check if user already exists
+  const existingUser = await prisma.user.findUnique({ where: { email } });
+  if (existingUser) {
+    throw new Error("User already exists with this email");
+  }
+  // Check username availability
+  const existingUsername = await prisma.user.findUnique({ where: { username } });
+  if (existingUsername) {
+    throw new Error("Username already exists");
   }
 
   const hashed = await bcrypt.hash(password, 10);
