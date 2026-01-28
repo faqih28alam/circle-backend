@@ -2,7 +2,7 @@
 // src/routes/auth-route.ts
 
 import express from 'express';
-import { handleLogin, handleRegister, checkAuth } from '../controllers/auth-controller';
+import { handleLogin, handleRegister, checkAuth, updateProfile } from '../controllers/auth-controller';
 import { authMiddleware } from '../middlewares/auth-middleware';
 import { upload } from '../utils/multer';
 
@@ -13,6 +13,7 @@ const router = express.Router();
 router.post('/login', handleLogin)
 router.post('/register', upload.single('photo_profile'), handleRegister)
 router.get('/check', authMiddleware, checkAuth)
+router.patch('/update', authMiddleware, upload.single('photo_profile'), updateProfile)
 
 router.get('/me', authMiddleware, (req, res) => { 
     res.json({ Message: "Welcome to the secret area!", user: (req as any).user });
