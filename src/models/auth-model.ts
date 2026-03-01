@@ -1,4 +1,4 @@
-// auth-service.ts
+// auth-model.ts
 import bcrypt from "bcrypt";
 import { prisma } from "../connection/client";
 import { generateToken } from "../utils/jwt";
@@ -6,8 +6,8 @@ import { generateToken } from "../utils/jwt";
 export async function registerUser(
   username: string,
   full_name: string,
-  email: string, 
-  password: string, 
+  email: string,
+  password: string,
   photo_profile?: string,
   bio?: string
 ) {
@@ -25,24 +25,25 @@ export async function registerUser(
   if (existingUsername) {
     throw new Error("Username already exists");
   }
-
+  // Hashing New User Password  
   const hashed = await bcrypt.hash(password, 10);
 
   const user = await prisma.user.create({
     data: { username, full_name, email, password: hashed, photo_profile, bio },
+    select: {
+      id: true,
+      username: true,
+      full_name: true,
+      email: true,
+      photo_profile: true,
+      bio: true
+    }
   });
-
+  // Add Token to New User
   const token = generateToken({ id: user.id, username: user.username });
 
-  return { 
-    user: {
-      id: user.id, 
-      username: user.username, 
-      full_name: user.full_name, 
-      email: user.email, 
-      photo_profile: user.photo_profile,
-      bio: user.bio,
-    },
+  return {
+    user: user,
     token: token
   };
 }
@@ -55,13 +56,13 @@ export async function loginUser(email: string, password: string) {
   if (!isMatch) throw new Error("Wrong password");
 
   const token = generateToken({ id: user.id, username: user.username });
-  return { 
+  return {
     token,
     user: {
-      id: user.id, 
-      username: user.username, 
-      full_name: user.full_name, 
-      email: user.email, 
+      id: user.id,
+      username: user.username,
+      full_name: user.full_name,
+      email: user.email,
       photo_profile: user.photo_profile,
       bio: user.bio,
     }

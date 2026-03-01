@@ -15,12 +15,10 @@ router.post('/register', upload.single('photo_profile'), handleRegister)
 router.get('/check', authMiddleware, checkAuth)
 router.patch('/update', authMiddleware, upload.single('photo_profile'), updateProfile)
 
-router.get('/me', authMiddleware, (req, res) => { 
-    res.json({ Message: "Welcome to the secret area!", user: (req as any).user });
-});
-
-// router.get('/me', limiter ,authMiddleware, (req, res) => { 
-//     res.json({ Message: "protected route" });
-// });
+router.get('/me', authMiddleware,
+    (req, res) => {
+        res.json({ Message: "This Token is Valid", user: (req as any).user });
+    }
+);
 
 export default router;

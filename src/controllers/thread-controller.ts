@@ -4,14 +4,14 @@
 import { Request, Response, NextFunction } from "express";
 import { prisma } from "../connection/client";
 import AppError from "../utils/app-error";
-import { findAllThreads } from "../services/thread-service";
+import { findAllThreads } from "../models/thread-model";
 
 // controller for getting all threads
 export async function getThreads(req: Request, res: Response) {
     try {
         // Use the ID from the authMiddleware
-        const userId = (req as any).user.id; 
-        
+        const userId = (req as any).user.id;
+
         // Use the service to get likes_count and isLiked
         const threads = await findAllThreads(userId);
 
@@ -56,7 +56,7 @@ export async function getThreadById(req: Request, res: Response) {
                 author: thread.author,
                 likes_count: thread._count.likes,
                 replies_count: thread._count.replies,
-                isLiked: thread.likes.length > 0 
+                isLiked: thread.likes.length > 0
             }
         });
 
@@ -100,34 +100,34 @@ export async function getThreadReplies(req: Request, res: Response) {
 export async function createThread(req: Request, res: Response, next: NextFunction) {
     try {
         const { content } = req.body;
-        
+
         // Check if content is valid
         if (!content || !content.trim() || content.length > 500) {
             return res.status(400).json({
                 status: "error",
                 message: "Invalid thread content",
             });
-        }        
+        }
 
         const image = req.file ? req.file.filename : null;
 
         const thread = await prisma.thread.create({
-            data: { 
-                content: content.trim(), 
-                image: req.file ? req.file.filename : null, 
+            data: {
+                content: content.trim(),
+                image: req.file ? req.file.filename : null,
                 // Use the ID from your authenticated request
-                author: { connect: { id: (req as any).user.id } }, 
+                author: { connect: { id: (req as any).user.id } },
             },
             include: { author: true }, // IMPORTANT: Include author for the WebSocket
         });
 
         const io = req.app.get("io");
         // Notify all clients that a new thread was created
-        io.emit("newThread", thread);        
-        
+        io.emit("newThread", thread);
+
         return res.status(201).json({
-            status: "success", 
-            message: "Thread created successfully", 
+            status: "success",
+            message: "Thread created successfully",
             data: thread,
         });
     } catch (err: any) {
@@ -168,13 +168,13 @@ export async function createReply(req: Request, res: Response) {
     try {
         const { content, thread_id } = req.body;
         const userId = (req as any).user.id;
-        
+
         // Validation Reply Content
         if (!content || content.trim().length === 0 || content.length > 500) {
             return res.status(400).json({
                 code: 400,
-                status: "error", 
-                message: "Invalid thread content" 
+                status: "error",
+                message: "Invalid thread content"
             });
         }
 
@@ -198,7 +198,7 @@ export async function createReply(req: Request, res: Response) {
             // Update/increment the reply counter on the main thread
             await tx.thread.update({
                 where: { id: Number(thread_id) },
-                data: { number_of_replies: { increment: 1 }}
+                data: { number_of_replies: { increment: 1 } }
             });
 
             return newReply;
@@ -209,7 +209,7 @@ export async function createReply(req: Request, res: Response) {
         if (!io) {
             io.emit(`newReply:${thread_id}`, result);
         }
-        
+
 
         return res.status(201).json({
             status: "success",

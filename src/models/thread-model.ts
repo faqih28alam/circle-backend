@@ -8,7 +8,7 @@ export const findAllThreads = async (currentUserId: number) => {
     include: {
       author: true, // Existing
       _count: {
-        select: { 
+        select: {
           likes: true,    // This creates the 'likes_count' field
           replies: true   // This creates the 'replies_count' field
         }
