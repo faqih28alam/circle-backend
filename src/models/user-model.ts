@@ -2,23 +2,13 @@
 
 import { prisma } from "../connection/client";
 
-//model to query username
-export const searchUsers = async (query: string) => {
-    const result = await prisma.user.findMany({
+// Search users by username OR full_name (partial match, case-insensitive)
+export const searchUsers = async (query: string, currentUserId: number) => {
+    const results = await prisma.user.findMany({
         where: {
             OR: [
-                {
-                    username: {
-                        contains: query,
-                        mode: "insensitive", // case-insensitive search
-                    },
-                },
-                {
-                    full_name: {
-                        contains: query,
-                        mode: "insensitive",
-                    },
-                },
+                { username: { contains: query, mode: "insensitive" } },
+                { full_name: { contains: query, mode: "insensitive" } },
             ],
         },
         select: {
@@ -27,10 +17,23 @@ export const searchUsers = async (query: string) => {
             full_name: true,
             photo_profile: true,
             bio: true,
-            // Never return password!
         },
-        take: 20, // limit results to 20 users max
+        take: 20,
     });
 
-    return result;
+    // Check which users the current logged-in user is already following
+    const followingRecords = await prisma.following.findMany({
+        where: {
+            follower_id: currentUserId,
+            following_id: { in: results.map((u) => u.id) },
+        },
+        select: { following_id: true },
+    });
+
+    const followingSet = new Set(followingRecords.map((f) => f.following_id));
+
+    return results.map((user) => ({
+        ...user,
+        isFollowing: followingSet.has(user.id),
+    }));
 };

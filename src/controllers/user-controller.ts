@@ -1,8 +1,8 @@
 // src/controllers/user-controller.ts
-import { Request, Response, NextFunction } from "express"
+
+import { Request, Response } from "express";
 import { searchUsers } from "../models/user-model";
 
-// controller to GET user by username or name
 export const getUser = async (req: Request, res: Response) => {
     try {
         // Query params come from URL: /api/search?q=john
@@ -15,7 +15,8 @@ export const getUser = async (req: Request, res: Response) => {
             });
         }
 
-        const users = await searchUsers(query.trim());
+        const currentUserId = (req as any).user.id;
+        const users = await searchUsers(query.trim(), currentUserId);
 
         return res.status(200).json({
             success: true,
