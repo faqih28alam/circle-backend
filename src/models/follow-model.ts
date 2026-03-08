@@ -64,6 +64,33 @@ export const getFollowing = async (userId: number, currentUserId: number) => {
     }));
 };
 
+// Get suggested users (people the current user is NOT following), limit to 5
+export const getSuggestedUsers = async (currentUserId: number) => {
+    // Get IDs of people the user already follows
+    const alreadyFollowing = await prisma.following.findMany({
+        where: { follower_id: currentUserId },
+        select: { following_id: true },
+    });
+
+    const excludeIds = [
+        currentUserId,
+        ...alreadyFollowing.map((f) => f.following_id),
+    ];
+
+    const suggested = await prisma.user.findMany({
+        where: { id: { notIn: excludeIds } },
+        select: {
+            id: true,
+            username: true,
+            full_name: true,
+            photo_profile: true,
+        },
+        take: 5,
+    });
+
+    return suggested.map((u) => ({ ...u, isFollowing: false }));
+};
+
 // Follow a user
 export const followUser = async (followerId: number, followingId: number) => {
     if (followerId === followingId) {
@@ -78,6 +105,15 @@ export const followUser = async (followerId: number, followingId: number) => {
     });
 
     return result;
+};
+
+// Get follower & following counts for a user
+export const getFollowCounts = async (userId: number) => {
+    const [followersCount, followingCount] = await Promise.all([
+        prisma.following.count({ where: { following_id: userId } }),
+        prisma.following.count({ where: { follower_id: userId } }),
+    ]);
+    return { followersCount, followingCount };
 };
 
 // Unfollow a user
