@@ -4,6 +4,7 @@
 import express, { Request, Response } from 'express';
 import authRoutes from './routes/auth-route';                     // import auth routes
 import appRoutes from './routes/app-route';                       // import app routes
+import userRoutes from './routes/user-route'
 import corsMiddleware from './middlewares/cors';                  // import CORS for bridge to client side
 import path from 'path';
 import { createServer } from 'node:http';                         // Implement Web Sockets
@@ -26,6 +27,7 @@ app.use(corsMiddleware);
 // Routes
 app.use('/api', authRoutes);
 app.use('/api', appRoutes);
+app.use('/api', userRoutes);
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 io.on("connection", (socket) => {
