@@ -82,7 +82,7 @@ export const updateProfile = async (req: Request, res: Response) => {
         username: updatedUser.username,
         full_name: updatedUser.full_name,
         email: updatedUser.email,
-        profile: updatedUser.photo_profile,
+        photo_profile: updatedUser.photo_profile,
         bio: updatedUser.bio,
       }
     });
