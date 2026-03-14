@@ -15,7 +15,7 @@ const app = express();
 const httpServer = createServer(app);                             // Implement Web Sockets
 
 const io = new Server(httpServer, {                               // Implement Web Sockets
-  cors: { origin: 'http://localhost:5173' }
+  cors: { origin: ['http://localhost:5173', 'https://circle-dw.vercel.app'] }
 });
 // Make 'io' accessible to your controllers
 app.set("io", io);
