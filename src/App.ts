@@ -44,6 +44,7 @@ httpServer.listen(PORT, () => {
 
 // global error handler: middleware for any unexpected errors 
 app.use((err: any, req: any, res: any, next: any) => {
+  console.log("Error: ", err);
   const statusCode = err.statusCode || 500;
   res.status(statusCode).json({ // Changed .send to .json for consistency
     success: false,
