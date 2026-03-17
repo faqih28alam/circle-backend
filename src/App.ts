@@ -30,7 +30,8 @@ app.use('/api', authRoutes);
 app.use('/api', appRoutes);
 app.use('/api', userRoutes);
 app.use('/api', followRoutes);
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+// app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+app.use('/uploads', express.static('/opt/render/project/src/uploads'));
 
 console.log(path.join(__dirname, 'uploads'));
 
