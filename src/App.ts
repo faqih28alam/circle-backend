@@ -32,6 +32,8 @@ app.use('/api', userRoutes);
 app.use('/api', followRoutes);
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
+console.log(path.join(__dirname, 'uploads'));
+
 io.on("connection", (socket) => {
   console.log("A user connected:", socket.id);
 });
