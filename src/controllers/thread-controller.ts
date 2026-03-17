@@ -125,12 +125,15 @@ export async function createThread(req: Request, res: Response, next: NextFuncti
         // Notify all clients that a new thread was created
         io.emit("newThread", thread);
 
+        console.log("succes create thread");
+
         return res.status(201).json({
             status: "success",
             message: "Thread created successfully",
             data: thread,
         });
     } catch (err: any) {
+        console.log(err);
         res.status(500).json({ message: err.message });
     }
 }
