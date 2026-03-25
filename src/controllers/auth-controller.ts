@@ -22,7 +22,7 @@ export async function handleRegister(req: Request, res: Response, next: NextFunc
     }
     // Fetch User Input from Client
     const { email, password, username, full_name, bio } = req.body;
-    const photo_profile = req.file ? req.file.filename : undefined;
+    const photo_profile = req.file ? req.file.path : undefined;
     // Model querry to DB
     const { user, token } = await registerUser(username, full_name, email, password, photo_profile, bio);
     return res.status(201).json({ message: "User registered successfully", user, token });
@@ -67,7 +67,7 @@ export const updateProfile = async (req: Request, res: Response) => {
     // Check if a new file was uploaded, otherwise keep the old one
     const updateData: any = { full_name, bio };
     if (req.file) {
-      updateData.photo_profile = req.file.filename;
+      updateData.photo_profile = req.file.path;
     }
 
     const updatedUser = await prisma.user.update({

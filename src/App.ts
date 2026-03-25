@@ -7,7 +7,6 @@ import appRoutes from './routes/app-route';                       // import app 
 import userRoutes from './routes/user-route'
 import followRoutes from './routes/follow-route';
 import corsMiddleware from './middlewares/cors';                  // import CORS for bridge to client side
-import path from 'path';
 import { createServer } from 'node:http';                         // Implement Web Sockets
 import { Server } from "socket.io";                               // Implement Web Sockets
 
@@ -30,9 +29,6 @@ app.use('/api', authRoutes);
 app.use('/api', appRoutes);
 app.use('/api', userRoutes);
 app.use('/api', followRoutes);
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
-
-console.log(path.join(__dirname, 'uploads'));
 
 io.on("connection", (socket) => {
   console.log("A user connected:", socket.id);
