@@ -109,12 +109,11 @@ export async function createThread(req: Request, res: Response, next: NextFuncti
             });
         }
 
-        const image = req.file ? req.file.filename : null;
-
         const thread = await prisma.thread.create({
             data: {
                 content: content.trim(),
-                image: req.file ? req.file.filename : null,
+                // image: req.file ? req.file.filename : null,
+                image: req.file ? req.file.path : null,
                 // Use the ID from your authenticated request
                 author: { connect: { id: (req as any).user.id } },
             },
@@ -182,12 +181,13 @@ export async function createReply(req: Request, res: Response) {
         }
 
         // We use a transaction to ensure both operations succeed or fail together
-        const result = await prisma.$transaction(async (tx) => {
+        const result = await prisma.$transaction(async (tx: any) => {
             //  Save the reply to the database
             const newReply = await tx.reply.create({
                 data: {
                     content: content.trim(),
-                    image: req.file ? req.file.filename : null,
+                    // image: req.file ? req.file.filename : null,
+                    image: req.file ? req.file.path : null,
                     thread: { connect: { id: Number(thread_id) } },
                     author: { connect: { id: userId } }
                 },
