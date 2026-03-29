@@ -122,7 +122,9 @@ export async function createThread(req: Request, res: Response, next: NextFuncti
 
         const io = req.app.get("io");
         // Notify all clients that a new thread was created
-        io.emit("newThread", thread);
+        if (io) {
+            io.emit("newThread", thread);
+        }
 
         console.log("succes create thread");
 
@@ -209,7 +211,7 @@ export async function createReply(req: Request, res: Response) {
 
         // WebSocket Notification
         const io = req.app.get("io");
-        if (!io) {
+        if (io) {
             io.emit(`newReply:${thread_id}`, result);
         }
 
